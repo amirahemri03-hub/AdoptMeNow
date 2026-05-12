@@ -1,0 +1,71 @@
+@model AdoptMeNow.Models.Users
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="profile-page">
+
+    <div class="profile-layout">
+
+        <!-- Sidebar -->
+        <div class="profile-sidebar">
+            <div class="profile-avatar">
+                @{
+                    var initials = string.IsNullOrEmpty(Model.FullName) ? "?" 
+                        : string.Concat(Model.FullName.Split(' ')
+                            .Where(w => w.Length > 0)
+                            .Take(2)
+                            .Select(w => w[0].ToString().ToUpper()));
+                }
+                @initials
+            </div>
+            <div class="profile-sidebar-name">@Model.FullName</div>
+            <div class="profile-sidebar-email">@Model.Email</div>
+
+            <div class="profile-sidebar-divider"></div>
+
+            <a class="profile-edit-btn"
+               asp-controller="Adopter"
+               asp-action="EditProfile">
+                Edit Profile
+            </a>
+        </div>
+
+        <!-- Main Info Card -->
+        <div class="profile-main-card">
+
+            <div class="profile-section-title">Personal Information</div>
+
+            <div class="profile-field-row">
+                <span class="profile-field-label">Full Name</span>
+                <span class="profile-field-value">@Model.FullName</span>
+            </div>
+            <div class="profile-field-row">
+                <span class="profile-field-label">Email</span>
+                <span class="profile-field-value">@Model.Email</span>
+            </div>
+            <div class="profile-field-row">
+                <span class="profile-field-label">Age</span>
+                <span class="profile-field-value">@Model.Age years old</span>
+            </div>
+
+            <div class="profile-section-gap"></div>
+            <div class="profile-section-title">Contact & Identity</div>
+
+            <div class="profile-field-row">
+                <span class="profile-field-label">Address</span>
+                <span class="profile-field-value">@Model.Address</span>
+            </div>
+            <div class="profile-field-row">
+                <span class="profile-field-label">IC Number</span>
+                <span class="profile-field-value">@Model.IcNumber</span>
+            </div>
+            <div class="profile-field-row">
+                <span class="profile-field-label">Contact</span>
+                <span class="profile-field-value">@Model.ContactInfo</span>
+            </div>
+
+        </div>
+    </div>
+</div>

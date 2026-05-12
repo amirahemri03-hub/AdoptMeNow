@@ -1,0 +1,53 @@
+@using AdoptMeNow.ViewModels
+@model List<AdoptionProgressViewModels>
+    
+                        @foreach (var item in Model)
+                        {
+                            var initials = string.Join("", item.FullName.Split(' ').Take(2).Select(w => w[0].ToString().ToUpper()));
+                            var badgeClass = item.Status switch {
+                                "Approved"    => "approved",
+                                "Rejected"    => "rejected",
+                                "Pending"     => "inprogress",
+                                _             => "pending"
+                            };
+
+                            var displayStatus = item.Status == "Pending" ? "In Progress" : item.Status;
+
+                            <tr>
+                                <td>
+                                    <div class="ad-adopter-cell">
+                                        <div class="ad-mini-avatar">@initials</div>
+                                        <span class="ad-adopter-name">@item.FullName</span>
+                                    </div>
+                                </td>
+                                <td><span class="ad-text-muted">@item.ContactInfo</span></td>
+                                <td><span class="ad-pet-name">@item.PetName</span></td>
+                                <td>
+                                    <span class="ad-date-chip">@item.ApplicationDate.ToString("dd/MM/yyyy HH:mm")</span>
+                                </td>
+                                <td>
+                                    <span class="ad-badge @badgeClass">
+                                        <span class="bdot"></span>
+                                        @item.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (item.PickupDate != null)
+                                    {
+                                        <span class="ad-date-chip">@item.PickupDate.Value.ToString("dd/MM/yyyy")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ad-date-chip notset">Not set</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-controller="Admin" asp-action="AdoptionDetail"
+                                       asp-route-id="@item.AdoptionId"
+                                       class="ad-btn-detail">
+                                        Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                

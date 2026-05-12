@@ -1,0 +1,301 @@
+@model AdoptMeNow.Models.RescueReport
+
+@{
+    ViewData["Title"] = "Rescue Detail";
+    string successMessage = TempData["Success"] as string;
+    bool hasSuccess = !string.IsNullOrEmpty(successMessage);
+    var reportedDate = Model.ReportedAt.ToString("dd MMM yyyy");
+
+ 
+}
+
+<div class="rescue-detail-page">
+
+@if (hasSuccess)
+{
+    <div class="rd-alert-success">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        
+
+        @successMessage
+    </div>
+}
+
+    <a asp-controller="Admin" asp-action="ManageRescue" class="ar-back-link">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+        Back to rescue reports
+    </a>
+
+    <div class="ar-page-header">
+        <div>
+            <p class="ar-eyebrow">Admin · Rescue Case #@Model.Id</p>
+            <h1>Rescue Report Detail</h1>
+            <p class="ar-subtitle">Submitted on @Model.ReportedAt.ToString("dd MMMM yyyy, HH:mm")</p>
+        </div>
+        @{
+            var statusClass = Model.Status.ToLower().Replace(" ", "-");
+        }
+        <span class="ar-badge @statusClass">
+            <span class="bdot"></span>@Model.Status
+        </span>
+    </div>
+
+    <!-- 1) Case overview — full width -->
+    <div class="rd-panel">
+        <div class="rd-panel-header">
+            <h3>Case overview</h3>
+            <span>@Model.ReportedAt.ToString("dd MMM yyyy")</span>
+        </div>
+        <div class="rd-case-overview">
+            <img class="rd-photo"
+                src="@Model.ImagePath"
+                alt="Rescue pet photo"
+                onclick="openLightbox(this.src)" />
+
+            <div class="rd-case-meta">
+                <div class="rd-meta-row">
+                    <span class="rd-meta-label">Description</span>
+                    <p class="rd-meta-value">@Model.Description</p>
+                </div>
+                <div class="rd-meta-row">
+                    <span class="rd-meta-label">Location</span>
+                    <p class="rd-meta-value">
+                        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+                        @Model.Location
+                        <a class="rd-loc-link" href="https://www.google.com/maps?q=@Model.Latitude,@Model.Longitude" target="_blank" rel="noopener noreferrer">
+                            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"/></svg>
+                            Maps
+                        </a>
+                    </p>
+                </div>
+                <div class="rd-meta-row">
+                    <span class="rd-meta-label">Coordinates</span>
+                    <p class="rd-meta-value rd-coords">@Model.Latitude, @Model.Longitude</p>
+                </div>
+                <div class="rd-meta-row">
+                    <span class="rd-meta-label">Reported at</span>
+                    <p class="rd-meta-value">@Model.ReportedAt.ToString("dd MMM yyyy, HH:mm")</p>
+                </div>
+            </div>
+        </div>
+        <div class="rd-reporter-row">
+            <div class="rd-reporter-avatar">
+                @{
+                    var avatarLetter = Model.User?.FullName?.Length > 0
+                        ? Model.User.FullName.Substring(0,1).ToUpper()
+                        : "?";
+                }
+                @avatarLetter
+            </div>
+            <div>
+                <div class="rd-reporter-name">@Model.User?.FullName</div>
+                <div class="rd-reporter-contact">
+                    @Model.User?.Email
+                    @if (!string.IsNullOrEmpty(Model.User?.ContactInfo))
+                    {
+                        <span> · @Model.User.ContactInfo</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2 & 3) Bottom: actions left, timeline right -->
+    <div class="rd-bottom-layout">
+
+        <div class="rd-panel" style="margin-bottom:0">
+            <div class="rd-action-head">
+                <span class="rd-action-head-label">Actions &amp; Status Update</span>
+            </div>
+            <div class="rd-action-body">
+                @if (Model.Status == "Pending")
+                {
+                    <p class="rd-section-label">Quick Actions</p>
+                    <div class="rd-action-row">
+                        <form asp-controller="Rescue" asp-action="Approve" method="post" class="action-flex">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit" class="btn-ar-approve btn-ar-full">Approve</button>
+                        </form>
+
+                        <div class="action-flex">
+                            <button type="button" class="btn-ar-reject btn-ar-full" onclick="toggleRejectBox()">Reject</button>
+                        </div>
+                    </div>
+                    <div id="rejectBox" style="display:none;margin-top:12px;">
+                        <form asp-controller="Rescue" asp-action="Reject" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <textarea name="rejectReason" class="rd-textarea" rows="3" placeholder="Enter rejection reason..." required></textarea>
+                            <button type="submit" class="btn-ar-reject" style="margin-top:10px;width:100%;justify-content:center;">Confirm Reject</button>
+                        </form>
+                    </div>
+                }
+                else if (Model.Status == "Approved" || Model.Status == "Rescued" || Model.Status == "Recovering")
+                {
+                    <div class="rd-info-box">
+                        <p>Rescue approved. Update progress below.</p>
+                    </div>
+
+                    <p class="rd-section-label">Update progress</p>
+
+                    <form asp-controller="Rescue" asp-action="UpdateStatus" method="post" enctype="multipart/form-data" id="updateStatusForm">
+                     @Html.AntiForgeryToken()
+
+                       <input type="hidden" name="RescueReportId" value="@Model.Id" />
+
+                       <div class="rd-form-stack">
+                            <div class="rd-field">
+                                @{
+                                    var allowedNext = ViewBag.StatusFlow as List<string>;
+                                }
+                                <label>Status</label>
+                            
+                                    <select name="status" class="rd-select">
+
+                                        <option value="@Model.Status" selected>
+                                            @Model.Status (current)
+                                        </option>
+
+                                        @foreach (var status in allowedNext)
+                                        {
+                                            if (status != Model.Status)
+                                            {
+                                                <option value="@status">@status</option>
+                                            }
+                                        }
+
+                                    </select>
+                            </div>
+                            <div class="rd-field">
+                                <label>Admin notes (Optional)</label>
+                                    <textarea name="StatusNote"
+                                            id="statusNote"
+                                            class="rd-textarea"
+                                            rows="3"
+                                            placeholder="Write an update note..."></textarea>
+                            </div>
+
+                            <div class ="rd-field">
+                                <label>Progress image (Optional)</label>
+
+                                <label class="rd-file-upload">
+                                    <svg viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z"
+                                            clip-rule="evenodd"/>
+                                    </svg>
+
+                                    <span>Click to upload an image</span>
+
+                                    <input type="file"
+                                        id="statusImage"
+                                        name="StatusImageFile"
+                                        accept="image/*"
+                                        onchange="previewImage(this)" />
+                                </label>
+
+                                <div id="imagePreviewContainer" style="display:none; margin-top: 12px;">
+                                    <img id="imagePreview"
+                                        style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid #ddd;" />
+
+                                    <button type="button"
+                                            onclick="clearImagePreview()"
+                                            style="margin-top: 8px; background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer;">
+                                        Remove Image
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="submit"
+                                    class="btn-ar-save"
+                                    onclick="return confirmAndUpdate()">
+
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clip-rule="evenodd"/>
+                                </svg>
+                                Save status update
+                            </button>
+
+                        </div>
+                    </form>
+                }
+                else if (Model.Status == "For Adoption" ||
+                        Model.Status == "Rejected" ||
+                        Model.Status == "Cancelled")
+                {
+                    <div class="rd-info-box">
+                        <p>No further status updates available.</p>
+                    </div>
+                }
+          
+            </div>
+        </div>
+
+        <div class="admin-timeline">
+            <partial name="_TrackRescue" model="Model" />
+        </div>
+
+    </div>
+        <div class="rd-lightbox" id="rdLightbox" onclick="closeLightbox()">
+        <button class="rd-lightbox-close" onclick="closeLightbox()">✕</button>
+        <img id="rdLightboxImg" src="" alt="Full size photo" onclick="event.stopPropagation()" />
+    </div>
+</div>
+
+<script>
+    function toggleRejectBox() {
+        const box = document.getElementById("rejectBox");
+        box.style.display = box.style.display === "none" ? "block" : "none";
+    }
+    
+    function confirmAndUpdate() {
+        return confirm("Are you sure you want to update this rescue status?");
+    }
+    
+    function previewImage(input) {
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        const preview = document.getElementById('imagePreview');
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                previewContainer.style.display = 'block';
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            previewContainer.style.display = 'none';
+            preview.src = '';
+        }
+    }
+    
+    function clearImagePreview() {
+        const fileInput = document.getElementById('statusImage');
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        const preview = document.getElementById('imagePreview');
+        
+        fileInput.value = '';
+        previewContainer.style.display = 'none';
+        preview.src = '';
+    }
+    
+    function openLightbox(src) {
+        document.getElementById('rdLightboxImg').src = src;
+        document.getElementById('rdLightbox').classList.add('active');
+    }
+
+    function closeLightbox() {
+        document.getElementById('rdLightbox').classList.remove('active');
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+    });
+</script>

@@ -1,0 +1,141 @@
+@model List<RescueReport>
+
+@{
+    ViewData["Title"] = "My Rescue Reports";
+}
+
+<div class="rescue-page">
+
+    <!-- ── Page Header ── -->
+    <div class="rescue-page-header">
+        <div>
+            <p class="header-eyebrow">Animal Rescue</p>
+            <h1>My Rescue Reports</h1>
+            <p class="subtitle">Track every case you've reported and monitor their review status.</p>
+        </div>
+        <a asp-controller="Rescue" asp-action="Report" class="btn-rescue-primary">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+            </svg>
+            Report New Case
+        </a>
+    </div>
+
+    @if (Model.Any())
+    {
+        <!-- ── Stat Cards ── -->
+        <div class="rescue-stats">
+            <div class="rescue-stat-card">
+                <div class="stat-icon slate">📋</div>
+                <div class="stat-info">
+                    <div class="stat-value">@Model.Count</div>
+                    <div class="stat-label">Total Reports</div>
+                </div>
+            </div>
+            <div class="rescue-stat-card">
+                <div class="stat-icon amber">⏳</div>
+                <div class="stat-info">
+                    <div class="stat-value">@Model.Count(r => r.Status == "Pending")</div>
+                    <div class="stat-label">Pending Review</div>
+                </div>
+            </div>
+            <div class="rescue-stat-card">
+                <div class="stat-icon green">✅</div>
+                <div class="stat-info">
+                    <div class="stat-value">@Model.Count(r => r.Status != "Pending")</div>
+                    <div class="stat-label">Reviewed</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Table Card ── -->
+        <div class="rescue-table-card">
+
+            <div class="rescue-table-toolbar">
+                <h2>All Cases</h2>
+                <span style="font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--r-muted);">
+                    @Model.Count report@(Model.Count == 1 ? "" : "s") found
+                </span>
+            </div>
+
+            <table class="rescue-table">
+                <thead>
+                    <tr>
+                        <th style="width:90px;">Photo</th>
+                        <th>Description</th>
+                        <th>Location</th>
+                        <th style="width:130px;">Status</th>
+                        <th style="width:150px;">Progress</th>
+                        <th style="width:120px;">Date Reported</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <!-- Photo -->
+                            <td>
+                                <img class="rescue-thumb" src="@item.ImagePath" alt="Case photo" />
+                            </td>
+
+                            <!-- Description -->
+                            <td class="rescue-desc-cell">
+                                <p>@item.Description</p>
+                            </td>
+
+                            <!-- Location -->
+                            <td>
+                                <div class="rescue-location-cell">
+                                    <svg viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    @item.Location
+                                </div>
+                            </td>
+
+                            <!-- Status -->
+                            <td>
+                                <span class="rescue-badge @item.Status.ToLower().Replace(" ", "-")">
+                                    <span class="bdot"></span>
+                                    @item.Status
+                                </span>
+                            </td>
+                            <td>
+                                <a class="btn-view-progress"
+                                asp-controller="Rescue"
+                                asp-action="Progress"
+                                asp-route-id="@item.Id">
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    View Progress
+                                </a>
+                            </td>
+                            <!-- Date -->
+                            <td class="rescue-date-cell">
+                                @item.ReportedAt.ToString("dd MMM yyyy")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <!-- ── Empty State ── -->
+        <div class="rescue-empty">
+            <div class="empty-icon">🐾</div>
+            <h3>No rescue reports yet</h3>
+            <p>You haven't submitted any cases. Spot an animal in need? Report it and we'll connect them with help.</p>
+            <a asp-controller="Rescue" asp-action="Report" class="btn-rescue-primary">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                Report Your First Case
+            </a>
+        </div>
+    }
+
+</div>

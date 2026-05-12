@@ -1,0 +1,197 @@
+@using AdoptMeNow.ViewModels
+@model List<MyApplicationViewModel>
+
+@{
+    int countAll       = Model?.Count ?? 0;
+    int countPending   = Model?.Count(x => x.Status == "Pending")   ?? 0;
+    int countApproved  = Model?.Count(x => x.Status == "Approved")  ?? 0;
+    int countRejected  = Model?.Count(x => x.Status == "Rejected")  ?? 0;
+    int countCancelled = Model?.Count(x => x.Status == "Cancelled") ?? 0;
+}
+
+<div class="adopt-page">
+    <div class="adopt-header">
+        <div>
+            <h1>My Applications</h1>
+            <p>Track the journey to finding your perfect companion</p>
+        </div>
+        @if (countAll > 0)
+        {
+            <span class="total-badge">@countAll application@(countAll == 1 ? "" : "s")</span>
+        }
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+            </div>
+            <h3>No application yet</h3>
+            <p>You haven't applied to adopt any pets yet. Browse available pets and start your adoption journey!</p>
+        </div>
+    }
+    else
+    {
+        <!-- filter bar -->
+        <div class="tabs-wrap">
+            <button class="filter-tab active" data-filter="all" onclick="applyFilter(this)">
+                All <span class="tab-count @(countAll == 0 ? "zero": "")">@countAll</span>
+            </button>
+            <button class="filter-tab" data-filter="Pending" onclick="applyFilter(this)">
+                In Progress <span class="tab-count @(countPending == 0 ? "zero": "")">@countPending</span>
+            </button>
+            <button class="filter-tab" data-filter="Approved" onclick="applyFilter(this)">
+                Approved <span class="tab-count @(countApproved == 0 ? "zero": "")">@countApproved</span>
+            </button>
+            <button class="filter-tab" data-filter="Rejected" onclick="applyFilter(this)">
+                Rejected <span class="tab-count @(countRejected == 0 ? "zero": "")">@countRejected</span>
+            </button>
+            <button class="filter-tab" data-filter="Cancelled" onclick="applyFilter(this)">
+                Cancelled <span class="tab-count @(countCancelled == 0 ? "zero": "")">@countCancelled</span>
+            </button>
+        </div>
+
+        <div class="cards-grid" id="cards-grid">
+            @foreach (var item in Model)
+            {
+                var ribbonClass = item.Status switch
+                {
+                    "Pending"   => "status-pending",
+                    "Approved"  => "status-approved",
+                    "Rejected"  => "status-rejected",
+                    "Cancelled" => "status-cancelled",
+                    _           => ""
+                };
+                var ribbonLabel = item.Status == "Pending" ? "In Progress" : item.Status;
+
+                <div class="app-card" data-status="@item.Status">
+                    <div class="card-image-wrap">
+                        @if (item.Pet?.ImageUrl != null)
+                        {
+                            <img src="@item.Pet.ImageUrl" alt="Photo of @item.Pet.Name" />
+                        }
+                        else
+                        {
+                            <div class="card-image-placeholder">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
+                                          d="M14 10a2 2 0 11-4 0 2 2 0 014 0zM6.5 8a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM20.5 8a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM4 15s1-5 8-5 8 5 8 5" />
+                                </svg>
+                            </div>
+                        }
+                        <span class="status-ribbon @ribbonClass">@ribbonLabel</span>
+                    </div>
+
+                    <div class="card-body">
+                        <h3 class="card-pet-name">@(item.Pet?.Name ?? "Unknown Pet")</h3>
+                        @if (!string.IsNullOrWhiteSpace(item.Pet?.Breed))
+                        {
+                            <p class="card-pet-breed">@item.Pet.Breed</p>
+                        }
+                        <div class="card-divider"></div>
+                        <div class="card-meta">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Applied on @item.ApplicationDate.ToString("MMMM d, yyyy")
+                        </div>
+
+                        @if (item.PickupDate.HasValue && item.Status == "Approved")
+                        {
+                            <div class="card-meta">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Pickup Date: @item.PickupDate.Value.ToString("MMMM d, yyyy")
+                            </div>
+                        }
+                        else if (item.Status == "Rejected" && !string.IsNullOrEmpty(item.RejectionReason))
+                        {
+                            <div class="card-meta rejection-reason">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Reason: @item.RejectionReason
+                            </div>
+                        }
+                    </div>
+
+                    @if (item.Status == "Pending")
+                    {
+                        <div class="card-footer">
+                            <form asp-action="CancelApplication" method="post">
+                                <input type="hidden" name="id" value="@item.AdoptionId" />
+                                <button type="submit" class="btn-cancel">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Cancel Application
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="empty-state" id="filter-empty" style="display:none;">
+            <div class="empty-state-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"
+                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg> 
+            </div>
+            <h3 id="filter-empty-title">No applications here</h3>
+            <p id="filter-empty-msg">You have no applications in this category.</p>
+        </div>
+    }   
+</div>
+
+@section Scripts {
+    <script>
+        function applyFilter(tab) {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const filter = tab.dataset.filter;
+            const cards = document.querySelectorAll('.app-card');
+            let visible = 0;
+
+            cards.forEach(card => {
+                const show = filter === 'all' || card.dataset.status === filter;
+                card.style.display = show ? 'flex' : 'none';
+                if (show) visible++;
+            });
+
+            const grid = document.getElementById('cards-grid');
+            const empty = document.getElementById('filter-empty');
+            if (grid && empty) {
+                grid.style.display = visible ? 'grid' : 'none';
+                empty.style.display = visible ? 'none' : 'block';
+            }
+            
+            if (!visible) {
+                const labels = {
+                    all: 'all',
+                    Pending: 'in progress',
+                    Approved: 'approved',
+                    Rejected: 'rejected',
+                    Cancelled: 'cancelled'
+                };
+                const label = labels[filter] || filter.toLowerCase();
+                const titleEl = document.getElementById('filter-empty-title');
+                const msgEl = document.getElementById('filter-empty-msg');
+                if (titleEl) titleEl.textContent = 'No applications';
+                if (msgEl) msgEl.textContent = 'You have no ' + label + ' applications at the moment.';
+            }
+        }
+    </script>
+}

@@ -1,0 +1,322 @@
+﻿@using Microsoft.AspNetCore.Http.Features
+@using Microsoft.EntityFrameworkCore.Query.SqlExpressions
+@using System.Security.Claims
+@model AdoptMeNow.ViewModels.HomeViewModel
+
+@{
+    ViewData["Title"] = "Find Your Pet";
+}
+
+@{
+    ViewData["Page"] = "home";
+}
+
+@{
+
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <div class="hero-badge">🐾 Pet Adoption</div>
+        <h1 class="hero-title">Find Your<br><span class="accent-text">Perfect Companion</span></h1>
+        <p class="hero-subtitle">Every pet deserves a loving home. Browse our available animals and give one a second chance.</p>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="search-bar">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by name or breed..." />
+            </div>
+        </div>
+    </div>
+    <div class="hero-stats">
+        <div class="stat-item">
+            <span class="stat-number">@Model.TotalPets</span>
+            <span class="stat-label">Pets Listed</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-number">@Model.AvailablePets</span>
+            <span class="stat-label">Available</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-number">@Model.AdoptedPets</span>
+            <span class="stat-label">Adopted</span>
+        </div>
+    </div>
+</section>
+
+<!-- Filter Bar -->
+<section class="filter-section">
+    <div class="filter-bar">
+        <span class="filter-label">Filter:</span>
+        <div class="filter-pills">
+            <button class="filter-pill active" onclick="setFilter('all', this)">All Pets</button>
+            <button class="filter-pill" onclick="setFilter('available', this)">✅ Available</button>
+            <button class="filter-pill" onclick="setFilter('adopted', this)">❤️ Adopted</button>
+            <!--button class="filter-pill" onclick="setFilter('pending', this)">🕒 In Progress</button-->
+        </div>
+        <div class="sort-wrapper">
+            
+            <select class="sort-select" onchange="setCategoryFilter(this.value)">
+                <option value="all">All Categories</option>
+                <option value="cat">🐱 Cat</option>
+                <option value="kitten">🐱 Kitten</option>
+                <option value="dog">🐶 Dog</option>
+                <option value="puppy">🐶 Puppy</option>
+            </select>
+        </div>
+    </div>
+</section>
+
+<!-- Pet Grid -->
+<section class="pets-section">
+    <div class="pets-grid" id="petsGrid">
+       
+            @Html.Partial("_PetCards", Model.Pets)
+        
+    </div>
+    <button id="loadMoreBtn" class="load-more-btn">
+        <span class="load-more-text">Load More</span>
+        <span class="load-more-spinner" style="display:none;">Loading...</span>
+    </button>
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-icon">🔎</div>
+        <h3>No pets found</h3>
+        <p>Try adjusting your search or filters.</p>
+        <button class="btn-reset" onclick="resetFilters()">Clear Filters</button>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+
+   let state = {
+        search: '',
+        filter: 'all',
+        category: 'all',
+        page: 1,
+        pageSize: 4
+    };
+
+    let timeout = null;//for debounce controlr
+    
+    function saveState() {
+        sessionStorage.setItem('petState', JSON.stringify(state));
+    }
+
+    function buildUrl(page) {
+
+        return `/Home/SearchPets?search=${encodeURIComponent(state.search)}&status=${state.filter}&category=${state.category}&page=${page}&pageSize=${state.pageSize}`;
+         /*notes:
+        encodeURIComponent Makes URL safe
+        Example:
+        "golden retriever" → "golden%20retriever"*/
+    }
+
+    function fetchPets(reset = true) {
+        
+        //if false skip this
+        if (reset) {
+            state.page = 1;
+        }
+
+        fetch(buildUrl(state.page))
+            //convert response into HTML string (sbb backend bagi raw data)
+            .then(res => res.text())
+            .then(html => {
+                
+                //create temporary container
+                const tempDiv = document.createElement('div');
+                //turning HTML text into real elements inside a div
+                tempDiv.innerHTML = html;
+                //count how many pet card came from server
+                const newCards = tempDiv.querySelectorAll('.pet-card').length;
+
+                if (reset) {
+                    //clear old card replace new from server
+                    document.getElementById('petsGrid').innerHTML = html;
+                } else {
+                    //insert without clear old content
+                    document.getElementById('petsGrid').insertAdjacentHTML('beforeend', html);
+                }
+
+                document.getElementById('loadMoreBtn').style.display =
+                    (newCards < state.pageSize) ? 'none' : 'block';
+                    /*
+                    if (newCards < state.pageSize)
+                        return 'none'(hide button)
+                    else
+                        return 'block'(show button)
+                    */
+            });
+    }
+
+    function loadSavedPages(targetPage) {
+        let tempPage = 1;
+        document.getElementById('petsGrid').innerHTML = '';
+
+        function loadNext() {
+        if (tempPage > targetPage) {
+            //AFTER loading all pages, check if more exists
+            fetch(buildUrl(targetPage))
+                .then(res => res.text())
+                .then(html => {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+
+                    const newCards = tempDiv.querySelectorAll('.pet-card').length;
+
+                    document.getElementById('loadMoreBtn').style.display =
+                        (newCards < state.pageSize) ? 'none' : 'block';
+                });
+
+            return;
+
+        }
+
+            fetch(buildUrl(tempPage))
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('petsGrid').insertAdjacentHTML('beforeend', html);
+                    
+                    tempPage++;
+                    loadNext();
+                });
+            }
+
+        loadNext();
+    }
+
+    document.getElementById('loadMoreBtn').addEventListener('click', function () {
+        state.page++;
+        saveState();
+        fetchPets(false);
+    });
+
+    //trigged tiap kali user search something
+    document.getElementById('searchInput').addEventListener('input', function () {
+
+        //cancels the previous pending search
+        clearTimeout(timeout);
+        state.search = this.value.trim();
+        /*Without this:
+        User types "cat"
+        → 3 requests sent:
+        "c"
+
+        "ca"
+        "cat"
+        Too many requests (bad performance)
+        */
+
+        timeout = setTimeout(() => { //Wait 300ms before sending request
+
+            //START SEARCH → save previous state
+            if (state.search !== '' && !sessionStorage.getItem('previousState')) {
+                sessionStorage.setItem('previousState', JSON.stringify({
+                    page: state.page,
+                    filter: state.filter,
+                    category: state.category
+                }));
+            }
+
+            //  CLEAR SEARCH → restore previous state
+            if (state.search === '' && sessionStorage.getItem('previousState')) {
+                const prev = JSON.parse(sessionStorage.getItem('previousState'));
+
+                state.page = prev.page;
+                state.filter = prev.filter;
+                state.category = prev.category;
+
+                // restore UI
+                document.querySelector('.sort-select').value = state.category;
+
+                document.querySelectorAll('.filter-pill')
+                    .forEach(btn => btn.classList.remove('active'));
+
+                const activeBtn = document.querySelector(`.filter-pill[onclick*="${state.filter}"]`);
+                if (activeBtn) activeBtn.classList.add('active');
+
+                loadSavedPages(state.page);
+
+                sessionStorage.removeItem('previousState');
+
+                saveState();
+
+                return;
+                
+            }
+            fetchPets(true);
+        }, 300); // debounce
+
+    });
+     //status filter
+
+    function setFilter(filter,btn){
+        state.filter = filter;
+        state.page = 1;
+
+        document.querySelectorAll('.filter-pill')
+            .forEach(p => p.classList.remove('active'));
+
+        btn.classList.add('active');
+
+        fetchPets(true);
+    }
+
+    //category filter
+    function setCategoryFilter(value){
+        state.category = value;
+        state.page = 1;
+
+        fetchPets(true);
+    }
+
+    //Reset Filter
+    function resetFilters(){
+        state.filter = 'all';
+        state.category = 'all';
+        state.search = '';
+        state.page = 1;
+
+        document.getElementById('searchInput').value = '';
+        document.querySelector('.sort-select').value = "all";
+
+        document.querySelectorAll('.filter-pill')
+            .forEach((p, i) => p.classList.toggle('active', i === 0));
+        
+        fetchPets(true);
+    }
+
+    window.addEventListener('load', function () {
+        const saved = sessionStorage.getItem('petState');
+
+            if (saved) {
+                state = JSON.parse(saved);
+
+                document.getElementById('searchInput').value = state.search;
+
+                // restore UI
+                document.querySelector('.sort-select').value = state.category;
+
+                document.querySelectorAll('.filter-pill')
+                    .forEach(btn => btn.classList.remove('active'));
+
+                const activeBtn = document.querySelector(`.filter-pill[onclick*="${state.filter}"]`);
+                if (activeBtn) activeBtn.classList.add('active');
+
+                // load ALL pages up to saved page
+                loadSavedPages(state.page);
+
+                // clear after restore (optional)
+                sessionStorage.removeItem('petState');
+            }
+    });
+
+</script>
+}

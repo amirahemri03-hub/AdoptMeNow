@@ -1,0 +1,117 @@
+@using AdoptMeNow.ViewModels
+@model List<AdoptionProgressViewModels>
+
+@{
+    ViewData["Title"] = "Adoption Progress";
+}
+
+<div class="adoption-page">
+
+    <!-- Page Header -->
+    <div class="ad-page-header">
+        <div>
+            <div class="ad-eyebrow">Admin · Applications</div>
+            <h1 class="ad-page-title">Adoption Applications</h1>
+            <p class="ad-page-subtitle">Review and manage all incoming adoption requests</p>
+        </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="ad-stats">
+        <div class="ad-stat-card">
+            <div class="ad-stat-icon total">📋</div>
+            <div>
+                <div class="ad-stat-value">@(Model?.Count ?? 0)</div>
+                <div class="ad-stat-label">Total</div>
+            </div>
+        </div>
+        <div class="ad-stat-card">
+            <div class="ad-stat-icon ongoing">🕐</div>
+            <div>
+                <div class="ad-stat-value">@(Model?.Count(x => x.Status == "Pending") ?? 0)</div>
+                <div class="ad-stat-label">In Progress</div>
+            </div>
+        </div>
+        <div class="ad-stat-card">
+            <div class="ad-stat-icon approved">✅</div>
+            <div>
+                <div class="ad-stat-value">@(Model?.Count(x => x.Status == "Approved") ?? 0)</div>
+                <div class="ad-stat-label">Approved</div>
+            </div>
+        </div>
+        <div class="ad-stat-card">
+            <div class="ad-stat-icon rejected">❌</div>
+            <div>
+                <div class="ad-stat-value">@(Model?.Count(x => x.Status == "Rejected") ?? 0)</div>
+                <div class="ad-stat-label">Rejected</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="ad-table-card">
+        <div class="ad-toolbar">
+            <h2 class="ad-toolbar-title">All Applications</h2>
+            <div class="ad-search">
+                <span class="ad-search-icon">🔍</span>
+                <input type="text" id="adSearch" placeholder="Search applications..." />
+            </div>
+        </div>
+
+        <div class="ad-table-scroll">
+            <table class="ad-table" id="adTable">
+                <thead>
+                    <tr>
+                        <th>Adopter</th>
+                        <th>Contact</th>
+                        <th>Pet</th>
+                        <th>Submitted</th>
+                        <th>Status</th>
+                        <th>Pickup Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @Html.Partial("_PetTable", Model)
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9">
+                                <div class="ad-empty">
+                                    <div class="ad-empty-icon">📭</div>
+                                    <h3>No applications yet</h3>
+                                    <p>Adoption requests will appear here once submitted.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    let timeout = null;
+    document.getElementById('adSearch').addEventListener('input', function () {
+
+        clearTimeout(timeout);
+
+        const query = this.value;
+
+        timeout = setTimeout(() =>{
+            fetch(`/Admin/SearchAdoptions?search=${encodeURIComponent(query)}`)
+            .then(res => res.text())
+            .then(html => {
+                document.querySelector('#adTable tbody').innerHTML = html;
+            });
+
+        }, 300);
+
+    });
+</script>

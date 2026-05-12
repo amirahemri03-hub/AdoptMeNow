@@ -1,0 +1,77 @@
+@model AdoptMeNow.Models.Users
+
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="profile-page">
+    <div class="edit-layout">
+        <div class="edit-card">
+
+            <!-- Header -->
+            <div class="edit-card-header">
+                <div class="edit-header-avatar">
+                    @{
+                        var initials = string.IsNullOrEmpty(Model.FullName) ? "?"
+                            : string.Concat(Model.FullName.Split(' ')
+                                .Where(w => w.Length > 0)
+                                .Take(2)
+                                .Select(w => w[0].ToString().ToUpper()));
+                    }
+                    @initials
+                </div>
+                <div class="edit-header-text">
+                    <h2>Edit Profile</h2>
+                    <p>Update your personal information</p>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <div class="edit-card-body">
+                <form asp-action="EditProfile" method="post">
+
+                    <div class="edit-form-grid">
+
+                        <div class="edit-form-group full">
+                            <label class="edit-form-label">Full Name</label>
+                            <input asp-for="FullName" class="edit-form-input" />
+                        </div>
+
+                        <div class="edit-form-group full">
+                            <label class="edit-form-label">Email</label>
+                            <input asp-for="Email" class="edit-form-input readonly" readonly />
+                        </div>
+
+                        <div class="edit-form-group">
+                            <label class="edit-form-label">Age</label>
+                            <input asp-for="Age" class="edit-form-input" />
+                        </div>
+
+                        <div class="edit-form-group">
+                            <label class="edit-form-label">Contact Number</label>
+                            <input asp-for="ContactInfo" class="edit-form-input" />
+                        </div>
+
+                        <div class="edit-form-group full">
+                            <label class="edit-form-label">Address</label>
+                            <input asp-for="Address" class="edit-form-input" />
+                        </div>
+
+                        <div class="edit-form-group full">
+                            <label class="edit-form-label">IC Number</label>
+                            <input asp-for="IcNumber" class="edit-form-input" />
+                        </div>
+
+                    </div>
+
+                    <div class="edit-form-actions">
+                        <button type="submit" class="edit-btn-save">Save Changes</button>
+                        <a asp-action="Profile" class="edit-btn-cancel">Cancel</a>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>

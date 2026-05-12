@@ -1,0 +1,278 @@
+@model AdoptMeNow.ViewModels.DashboardViewModel
+
+<!-- HEADER -->
+<div class="db-header">
+    <div class="db-header-left">
+        <h1 class="db-title">Dashboard</h1>
+        <p class="db-subtitle">@DateTime.Now.ToString("dddd, dd MMMM yyyy") — Kuala Lumpur</p>
+    </div>
+    <div class="db-header-right">
+        <button class="btn-export">Export report</button>
+    </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div id="exportModal" class="modal">
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon">
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                        <path d="M3 2.5a.5.5 0 0 1 .5-.5h5.293L12 5.207V12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-10Z" stroke="currentColor" stroke-width="1.1" fill="none"/>
+                        <path d="M8.5 2v3h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+                        <path d="M5.5 8.5l2 2 2-2M7.5 10.5V6.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <span class="modal-title">Export report</span>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&#215;</button>
+        </div>
+
+        <form method="post" asp-action="Export">
+
+            <div class="form-group">
+                <label class="form-label">Format</label>
+                <div class="format-options">
+                    <label class="format-option selected" id="opt-pdf">
+                        <input type="radio" name="Format" value="PDF" checked onchange="selectFormat(this)">
+                        <span>PDF</span>
+                    </label>
+                    <label class="format-option" id="opt-excel">
+                        <input type="radio" name="Format" value="Excel" onchange="selectFormat(this)">
+                        <span>Excel</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="date-row">
+                <div class="form-group">
+                    <label class="form-label">From</label>
+                    <input type="date" name="FromDate" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">To</label>
+                    <input type="date" name="ToDate" />
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn-export">Export</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="s-label">Total Adoptions</div>
+        <div class="s-value">@Model.TotalAdoptions</div>
+    </div>
+    <div class="stat-card">
+        <div class="s-label">Total Pets</div>
+        <div class="s-value">@Model.TotalPets</div>
+    </div>
+    <div class="stat-card">
+        <div class="s-label">Pending Adoption Request</div>
+        <div class="s-value">@Model.PendingApplications</div>
+    </div>
+    <div class="stat-card">
+        <div class="s-label">Rescue Reports</div>
+        <div class="s-value">@Model.TotalRescueReports</div>
+    </div>
+</div>
+
+<!-- CHARTS ROW -->
+<div class="charts-row">
+
+    <!-- LINE CHART -->
+    <div class="db-card">
+        <div class="card-title">Monthly Adoptions</div>
+        <div class="chart-wrap">
+            <canvas id="adoptionChart"></canvas>
+        </div>
+    </div>
+
+    <!-- DOUGHNUT -->
+    <div class="db-card">
+        <div class="card-title">Pet Status Breakdown</div>
+        <div class="donut-wrap">
+            <canvas id="petStatusChart" width="160" height="160"></canvas>
+            <div class="donut-legend">
+                <div class="legend-row">
+                    <div class="leg-label"><span class="leg-dot" style="background:#1D9E75;"></span>Available</div>
+                    <span class="leg-val">@Model.AvailablePets</span>
+                </div>
+                <div class="legend-row">
+                    <div class="leg-label"><span class="leg-dot" style="background:#378ADD;"></span>Adopted</div>
+                    <span class="leg-val">@Model.AdoptedPets</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- RESCUE MAP -->
+<div class="db-card map-card">
+    <div class="card-title">Rescue Locations</div>
+    <div id="map" style="height: 380px; width: 100%; border-radius: 10px;"></div>
+    <div class="map-legend">
+        <span>📍 Approved Rescue Locations</span>
+    </div>
+</div>
+
+<script>
+
+    function selectFormat(radio) {
+    document.querySelectorAll('.format-option').forEach(el => {
+        const isSelected = el.querySelector('input').checked;
+        el.classList.toggle('selected', isSelected);
+        });
+    }
+    function openModal() {
+        const modal = document.getElementById("exportModal");
+        modal.style.display = "block";
+
+        // reset form every time modal opens
+        modal.querySelector("form").reset();
+    }
+</script>
+
+<!-- CHART.JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    const tickColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.4)';
+
+    // Line chart
+    const months = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.MonthlyAdoptions.Select(x => x.Label).ToList()
+    ));
+    const values = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.MonthlyAdoptions.Select(x => x.Total).ToList()
+    ));
+
+    new Chart(document.getElementById('adoptionChart'), {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Adoptions',
+                data: values,
+                borderColor: '#378ADD',
+                backgroundColor: 'rgba(55,138,221,0.08)',
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#378ADD',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } } },
+                y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } }, beginAtZero: true }
+            }
+        }
+    });
+
+    // Doughnut chart
+    new Chart(document.getElementById('petStatusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Available', 'Adopted'],
+            datasets: [{
+                data: [@Model.AvailablePets,@Model.AdoptedPets],
+                backgroundColor: ['#1D9E75', '#378ADD'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: false,
+            cutout: '68%',
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>
+
+<!-- GOOGLE MAPS -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAIrCFUEk7IQO_WvzBoh5PfmpEG-wsdZi4"></script>
+<script>
+    const rescueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.RescueReports.Select(r => new {
+            lat = r.Latitude,
+            lng = r.Longitude,
+            description = r.Description,
+            status = r.Status
+        })
+    ));
+
+    function pinColor(status) {
+        if (status === 'Pending') return '#EF9F27';
+        if (status === 'Approved') return '#E24B4A';
+    }
+
+    function initMap() {
+        const center = { lat: 3.1390, lng: 101.6869 };
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 11,
+            center: center,
+            styles: [
+                { featureType: "poi", stylers: [{ visibility: "off" }] },
+                { featureType: "transit", stylers: [{ visibility: "off" }] }
+            ]
+        });
+
+        rescueData
+            .filter(r => r.status === 'Approved')
+            .forEach(r => {
+
+            const marker = new google.maps.Marker({
+                position: { lat: r.lat, lng: r.lng },
+                map: map,
+                title: r.description,
+
+            });
+
+        const info = new google.maps.InfoWindow({
+            content: `<div style="font-family:sans-serif;padding:4px;">
+                <strong>Rescue Case</strong>
+                <p>${r.description}</p>
+                <span>Status: <b>${r.status}</b></span>
+            </div>`
+        });
+
+            marker.addListener("click", () => info.open(map, marker));
+        });
+    }
+
+    initMap();
+
+    const modal = document.getElementById("exportModal");
+    const btn = document.querySelector(".btn-export");
+
+    btn.onclick = () => {
+        modal.style.display = "block";
+    };
+
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    };
+</script>

@@ -1,0 +1,26 @@
+@model AdoptMeNow.ViewModels.PetViewModel
+@{
+    var pet = Model.Pet;
+    var adoptUrl = User.Identity.IsAuthenticated
+    ? $"/Adoption/AdoptPet/{pet.PetId}"
+    : $"/Account/Login?returnUrl=/Adoption/AdoptPet/{pet.PetId}";
+}
+
+@if (pet.Status == "Adopted")
+{
+    <button class="btn-adopted" disabled>
+        Already Adopted
+    </button>
+}
+else if (Model.ApplicationStatus == "Pending")
+{
+    <button class="btn-adopted" disabled>
+        Application Pending
+    </button>
+}
+else
+{
+    <a href="@adoptUrl" class="btn-adopt">
+        Adopt Me
+    </a>
+}

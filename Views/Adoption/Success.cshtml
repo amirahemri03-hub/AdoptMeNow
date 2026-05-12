@@ -1,0 +1,24 @@
+@model AdoptMeNow.Models.Pet
+
+<div class="success-wrap">
+    <div class="success-card">
+
+        <h2>🎉 Application Submitted!</h2>
+
+        <p>
+            You have successfully applied to adopt 
+            <strong>@Model.Name 🐾</strong>
+        </p>
+
+        <p>
+            Our team will review your application and contact you soon.
+        </p>
+
+        <img src="@Model.ImageUrl" alt="@Model.Name" class="success-img" />
+
+        <div class="btn-row">
+            <a href="/Home/Index" class="btn-primary">Back to Home</a>
+        </div>
+
+    </div>
+</div>

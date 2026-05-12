@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — AdoptMeNow</title>
+    <script type="importmap"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/adopter.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/adoption.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/rescue.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/AdoptMeNow.styles.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
+
+</head>
+
+@functions{
+    string IsActive(string controller, string action)
+    {
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+        return (controller == currentController && action == currentAction)
+            ? "active"
+            : "";
+    }
+}
+
+<script>
+    function toggleNav() {
+        document.querySelector('.sidenav').classList.toggle('mobile-open');
+        document.querySelector('.nav-overlay').classList.toggle('visible');
+        document.querySelector('.mobile-nav-toggle').classList.toggle('is-open');
+
+    }
+</script>
+
+<body class="app-shell" data-page="@ViewData["Page"]">
+
+    <!-- ── Mobile top bar — only visible below 900px ── -->
+    <header class="mobile-topbar">
+        <button class="mobile-nav-toggle" onclick="toggleNav()" aria-label="Open navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <a class="topbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+            <div class="topbar-logo">🐾</div>
+            <span class="topbar-name">AdoptMeNow</span>
+        </a>
+    </header>
+
+    <div class="nav-overlay" onclick="toggleNav()"></div>
+
+    <!-- SIDE NAVBAR -->
+    <nav class="sidenav">
+        <div class="sidenav-top">
+
+            <!-- Brand -->
+            <a class="nav-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                <div class="brand-logo">🐾</div>
+                <div class="brand-text-wrap">
+                    <span class="brand-name">AdoptMeNow</span>
+                    <span class="brand-tagline">Rescue Platform</span>
+                </div>
+            </a>
+
+            <!-- MAIN -->
+            <div class="nav-section">
+                <span class="nav-section-label">Main</span>
+
+                <a class="nav-link @IsActive("Home", "Index")"
+                   asp-controller="Home" asp-action="Index">
+                    <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7A1 1 0 003 11h1v6a1 1 0 001 1h4v-4h2v4h4a1 1 0 001-1v-6h1a1 1 0 00.707-1.707l-7-7z"/>
+                    </svg>
+                    <span class="nl-text">Home</span>
+                </a>
+
+            </div>
+
+            <!-- MY ACCOUNT — authenticated users only -->
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                <div class="nav-section">
+
+                    @if (User.IsInRole("User"))
+                    {
+                        <span class="nav-section-label">My Account</span>
+                        
+                        <a class="nav-link @IsActive("Adopter", "Profile")"
+                           asp-controller="Adopter" asp-action="Profile">
+                            <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="nl-text">My Profile</span>
+                        </a>
+                    
+                        <a class="nav-link @IsActive("SavedPets", "Index")"
+                            asp-controller="SavedPets" asp-action="Index">
+                            <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                                 <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/>
+                            </svg>
+                            <span class="nl-text">Saved Pets</span>
+                        </a>
+
+                        <a class="nav-link @IsActive("Adoption", "MyApplication")"
+                         asp-controller="Adoption" asp-action="MyApplication">
+                            <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="nl-text">My Applications</span>
+                        </a>
+
+                        <a class="nav-link @IsActive("Rescue", "Index")"
+                         asp-controller="Rescue" asp-action="Index">
+                             <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 01.707 1.707L13.414 9l3.293 3.293A1 1 0 0116 14H4a1 1 0 01-1-1V5zm1 8h10.586l-2.293-2.293a1 1 0 010-1.414L14.586 7H4v6zM3 17a1 1 0 011-1h1a1 1 0 010 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="nl-text">Report Rescue</span>
+                        </a>
+                        }
+                    }
+                </div>
+            }
+
+            <!-- GENERAL -->
+            <div class="nav-section">
+     
+            </div>
+        </div>
+
+        <!-- Bottom user card + auth -->
+        <div class="sidenav-bottom">
+            <div class="nav-divider"></div>
+            <partial name="_LoginPartial" />
+        </div>
+    </nav>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-wrapper">
+        <main class="page-main">
+            @RenderBody()
+        </main>
+
+        <footer class="site-footer">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <span style="font-size:16px;">🐾</span>
+                    <span>AdoptMeNow</span>
+                </div>
+                <p class="footer-copy">&copy; 2026 AdoptMeNow — Giving pets a second chance.</p>
+                <a class="footer-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

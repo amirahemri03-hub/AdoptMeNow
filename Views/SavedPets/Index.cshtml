@@ -1,0 +1,54 @@
+@model List<AdoptMeNow.ViewModels.PetViewModel>
+
+@{
+    ViewData["Title"] = "Saved Pets";
+    ViewData["Page"] = "savedpets";
+}
+
+<div class="saved-page">
+
+    <!-- Header -->
+    <div class="saved-header">
+        <div class="saved-header-left">
+            <div class="saved-header-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="26" height="26">
+                    <path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="saved-title">Saved Pets</h1>
+                <p class="saved-subtitle">
+                    @if (Model.Any())
+                    {
+                        <span>@Model.Count pet@(Model.Count == 1 ? "" : "s") on your list</span>
+                    }
+                    else
+                    {
+                        <span>Your wishlist is empty</span>
+                    }
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    @if (!Model.Any())
+    {
+        <div class="saved-empty">
+            <div class="saved-empty-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="52" height="52">
+                    <path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/>
+                </svg>
+            </div>
+            <h3 class="saved-empty-title">No saved pets yet</h3>
+            <p class="saved-empty-text">Browse pets and tap the bookmark icon to save your favourites here.</p>
+            <a href="/Home/Index" class="saved-browse-btn">Browse Pets</a>
+        </div>
+    }
+    else
+    {
+        <div class="pets-grid">
+            @Html.Partial("~/Views/Home/_PetCards.cshtml", Model)
+        </div>
+    }
+</div>

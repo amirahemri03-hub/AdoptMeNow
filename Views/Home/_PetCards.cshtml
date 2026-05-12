@@ -1,0 +1,63 @@
+@model List<AdoptMeNow.ViewModels.PetViewModel>
+
+@foreach (var item in Model)
+        {      
+            var pet = item.Pet;
+            <div class="pet-card @pet.Status.ToLower()"
+                data-name="@(pet.Name?.ToLower() ?? "")"
+                data-breed="@(pet.Breed?.ToLower() ?? "")"
+                data-age="@pet.Age"
+                data-status="@(pet.Status == "Adopted" ? "adopted" : "available")"
+                data-category="@(pet.Category?.ToLower() ?? "")">
+
+                <div class="pet-image-wrapper">
+
+                    @if (!string.IsNullOrEmpty(pet.ImageUrl))
+                    {
+                        <img src="@pet.ImageUrl" class="pet-image" alt="@pet.Name" />
+                    }
+                    else
+                    {
+                        <img src="/images/default.png" class="pet-image" alt="@pet.Name" />
+                    }
+
+                    @if (pet.Status =="Adopted")
+                    {
+                        <div class="pet-status-badge badge-adopted">Adopted</div>
+                    }
+                    else if(item.HasPendingApplication)
+                    {
+                        
+                        <div class="pet-status-badge badge-pending">In Progress</div>
+                        
+                    }
+                    else
+                    {
+                        <div class="pet-status-badge badge-available">Available</div>
+                    }
+                </div>
+
+                <div class="pet-info">
+                    <div class="pet-name-row">
+                        <h3 class="pet-name">@pet.Name</h3>
+                        <button 
+                            id="save-btn-@pet.PetId" 
+                            class="save-btn @(item.IsSaved ? "saved" : "")"
+                            onclick="toggleSave(@pet.PetId)"
+                            aria-label="@(item.IsSaved ? "Unsave pet" : "Save pet")">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                <path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="pet-breed">🐾 @pet.Breed</p>
+                    <p class="pet-age">🗓️ @pet.Age year@(pet.Age == 1 ? "" : "s") old</p>
+
+                    <div class="pet-actions">
+                        <partial name="_AdoptButton" model="item" />
+                        <a href="/Home/Details/@pet.PetId"  onclick="saveState()" class="btn-details">Details</a>
+                    </div>
+
+                </div>
+            </div>
+        }

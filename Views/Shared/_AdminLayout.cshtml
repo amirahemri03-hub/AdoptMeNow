@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — AdoptMeNow</title>
+    <script type="importmap"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/rescue.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/AdoptMeNow.styles.css" asp-append-version="true" />
+
+
+</head>
+
+@functions{
+    string IsActive(string controller, string action)
+    {
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+        return (controller == currentController && action == currentAction)
+            ? "active"
+            : "";
+    }
+}
+<body class="app-shell">
+
+    <!-- SIDE NAVBAR -->
+    <nav class="sidenav">
+        <div class="sidenav-top">
+
+            <!-- Brand -->
+            <a class="nav-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                <div class="brand-logo">🐾</div>
+                <div class="brand-text-wrap">
+                    <span class="brand-name">AdoptMeNow</span>
+                    <span class="brand-tagline">Rescue Platform</span>
+                </div>
+            </a>
+
+            <!-- MAIN -->
+            <div class="nav-section">
+                <span class="nav-section-label">Main</span>
+                <a class="nav-link @IsActive("Admin", "Dashboard")"
+                   asp-controller="Admin" asp-action="Dashboard">
+                    <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 3h7v7H3V3zm0 9h7v7H3v-7zm11-9h3v5h-3V3zm0 7h3v11h-3V10z"/>
+                    </svg>
+                    <span class="nl-text">Dashboard</span>
+                </a>
+            </div>
+    
+            <!-- GENERAL -->
+            <div class="nav-section">
+                <span class="nav-section-label">General</span>
+
+                <a class="nav-link @IsActive("Admin", "ManagePets")"
+                   asp-controller="Admin" asp-action="ManagePets">
+                    <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M4.5 10c1.1 0 2-.9 2-2S5.6 6 4.5 6 2 6.9 2 8s.9 2 2.5 2zm11 0C16.1 10 17 9.1 17 8s-.9-2-2-2-2 .9-2 2 .9 2 2.5 2zM8 7c1.1 0 2-.9 2-2S9.1 3 8 3 6 3.9 6 5s.9 2 2 2zm4 0c1.1 0 2-.9 2-2S13.1 3 12 3s-2 .9-2 2 .9 2 2 2zM10 11c-2.2 0-4 1.8-4 4h8c0-2.2-1.8-4-4-4z"/>
+                    </svg>
+                    <span class="nl-text">Manage Pets</span>
+                </a>
+                  <a class="nav-link @IsActive("Admin", "AdoptionProgress")"
+                   asp-controller="Admin" asp-action="AdoptionProgress">
+                    <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 3h2v14H3V3zm4 6h2v8H7V9zm4-4h2v12h-2V5zm4 7h2v5h-2v-5z"/>
+                    </svg>
+                    <span class="nl-text">Adoption Progress</span>
+                </a>
+                <a class="nav-link @IsActive("Admin", "ManageRescue")"
+                   asp-controller="Admin" asp-action="ManageRescue">
+                    <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 21s-6-4.35-8.5-7C-.5 10.5 2 6 6 6c2 0 3.5 1.5 4 2 0.5-.5 2-2 4-2 4 0 6.5 4.5 4.5 8C16 16.65 10 21 10 21z"/>
+                    </svg>
+                    <span class="nl-text">Pet Rescue</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Bottom user card + auth -->
+        <div class="sidenav-bottom">
+            <div class="nav-divider"></div>
+            <partial name="_LoginPartial" />
+        </div>
+    </nav>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-wrapper">
+        <main class="page-main">
+            @RenderBody()
+        </main>
+
+        <footer class="site-footer">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <span style="font-size:16px;">🐾</span>
+                    <span>AdoptMeNow</span>
+                </div>
+                <p class="footer-copy">&copy; 2026 AdoptMeNow — Giving pets a second chance.</p>
+                <a class="footer-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

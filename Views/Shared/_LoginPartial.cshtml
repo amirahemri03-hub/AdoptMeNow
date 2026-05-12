@@ -1,0 +1,47 @@
+@using Microsoft.AspNetCore.Identity
+@using AdoptMeNow.Models
+@inject SignInManager<Users> SignInManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <!-- Signed-in: show user card + logout -->
+    <div class="user-card">
+        <div class="user-avatar">
+            @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
+        </div>
+        <div class="user-info">
+            <span class="user-name">@User.Identity?.Name</span>
+            <span class="user-role">@(User.IsInRole("Admin") ? "Administrator" : "Adopter")</span>
+        </div>
+        <div class="user-status-dot"></div>
+    </div>
+
+    <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0;">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="nav-link nav-link--logout">
+            <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
+            </svg>
+            <span class="nl-text">Logout</span>
+        </button>
+    </form>
+}
+else
+{
+    <!-- Guest: show login + register buttons -->
+    <div class="auth-buttons-stack">
+        <a class="auth-btn auth-btn--login" asp-controller="Account" asp-action="Login">
+            <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span>Login</span>
+        </a>
+
+        <a class="auth-btn auth-btn--register" asp-controller="Account" asp-action="Register">
+            <svg class="nl-icon" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/>
+            </svg>
+            <span>Create Account</span>
+        </a>
+    </div>
+}

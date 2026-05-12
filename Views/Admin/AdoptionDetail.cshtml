@@ -1,0 +1,212 @@
+@using AdoptMeNow.ViewModels
+@model AdoptionDetailViewModel
+
+@{
+    ViewData["Title"] = "Adoption Detail";
+
+    string badgeClass = Model.Status switch {
+        "Approved"    => "approved",
+        "Rejected"    => "rejected",
+        "Pending"     => "inprogress",
+        _             => "pending"
+    };
+
+    string Yn(bool val) => val ? "Yes" : "No";
+    string YnClass(bool val) => val ? "yes" : "no";
+    string YnEmoji(bool val) => val ? "✅" : "❌";
+}
+
+@{
+    var isPending = Model.Status == "Pending";
+    var isApproved = Model.Status == "Approved";
+    var isRejected = Model.Status == "Rejected";
+}
+
+<link rel="stylesheet" href="~/css/adoption-admin.css" />
+
+<div class="adoption-page">
+
+    <!-- Page Header -->
+    <div class="ad-page-header">
+        <div>
+            <div class="ad-eyebrow">Admin · Applications</div>
+            <h1 class="ad-page-title">Application Detail</h1>
+            <p class="ad-page-subtitle">
+                Reviewing request for <strong>@Model.PetName</strong>
+                &nbsp;<span class="ad-badge @badgeClass"><span class="bdot"></span>@Model.Status</span>
+            </p>
+        </div>
+        <a asp-controller="Admin" asp-action="AdoptionProgress" class="ad-back-link">
+            ← Back to Applications
+        </a>
+    </div>
+
+    <!-- Two-column layout -->
+    <div class="ad-detail-layout">
+
+        <!-- LEFT COLUMN -->
+        <div class="ad-detail-left">
+
+            <!-- Application Info -->
+            <div class="ad-panel">
+                <div class="ad-panel-header">
+                    <div class="ad-panel-icon blue">👤</div>
+                    <h3 class="ad-panel-title">Application Information</h3>
+                </div>
+                <div class="ad-panel-body">
+                    <div class="ad-info-list">
+                        <div class="ad-info-row">
+                            <div class="ad-info-label">Full Name</div>
+                            <div class="ad-info-value">@Model.FullName</div>
+                        </div>
+                        <div class="ad-info-row">
+                            <div class="ad-info-label">Contact</div>
+                            <div class="ad-info-value">@Model.ContactInfo</div>
+                        </div>
+                        <div class="ad-info-row">
+                            <div class="ad-info-label">Age</div>
+                            <div class="ad-info-value">@Model.Age</div>
+                        </div>
+                        <div class="ad-info-row">
+                            <div class="ad-info-label">IC Number</div>
+                            <div class="ad-info-value" style="font-family:'Courier New',monospace;font-size:.85rem;">@Model.IcNumber</div>
+                        </div>
+                        <div class="ad-info-row">
+                            <div class="ad-info-label">Address</div>
+                            <div class="ad-info-value">@Model.Address</div>
+                        </div>
+                        <div class="ad-info-row">
+                            <div class="ad-info-label">Pet</div>
+                            <div class="ad-info-value pet">🐾 @Model.PetName</div>
+                        </div>
+                        <div class="ad-info-row">
+                            <div class="ad-info-label">Submitted</div>
+                            <div class="ad-info-value">
+                                <span class="ad-date-chip">@Model.ApplicationDate.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="ad-detail-right">
+
+            <!-- Pre-Adoption Assessment -->
+            <div class="ad-panel">
+                <div class="ad-panel-header">
+                    <div class="ad-panel-icon green">🧩</div>
+                    <h3 class="ad-panel-title">Pre-Adoption Assessment</h3>
+                </div>
+                <div class="ad-panel-body">
+                    <div class="ad-assessment-grid">
+                        <div class="ad-assess-item">
+                            <div class="ad-assess-q">Do you have enough time daily to care for and spend with a pet?</div>
+                            <span class="ad-assess-a @YnClass(Model.HasTimeForPet)">@YnEmoji(Model.HasTimeForPet) @Yn(Model.HasTimeForPet)</span>
+                        </div>
+                        <div class="ad-assess-item">
+                            <div class="ad-assess-q">Are you financially prepared to cover ongoing pet expenses?</div>
+                            <span class="ad-assess-a @YnClass(Model.IsFinanciallyReady)">@YnEmoji(Model.IsFinanciallyReady) @Yn(Model.IsFinanciallyReady)</span>
+                        </div>
+                        <div class="ad-assess-item">
+                            <div class="ad-assess-q">Are you emotionally ready for long-term pet care?</div>
+                            <span class="ad-assess-a @YnClass(Model.IsEmotionallyReady)">@YnEmoji(Model.IsEmotionallyReady) @Yn(Model.IsEmotionallyReady)</span>
+                        </div>
+                        <div class="ad-assess-item">
+                            <div class="ad-assess-q">Are you willing to take your pet for regular vet checkups?</div>
+                            <span class="ad-assess-a @YnClass(Model.WillingVetVisits)">@YnEmoji(Model.WillingVetVisits) @Yn(Model.WillingVetVisits)</span>
+                        </div>
+                        <div class="ad-assess-item" style="grid-column:1/-1;">
+                            <div class="ad-assess-q">Do you have enough space at home for a pet?</div>
+                            <span class="ad-assess-a @YnClass(Model.HasEnoughSpace)">@YnEmoji(Model.HasEnoughSpace) @Yn(Model.HasEnoughSpace)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manage Application -->
+            <div class="ad-panel">
+                <div class="ad-panel-header">
+                    <div class="ad-panel-icon amber">⚙️</div>
+                    <h3 class="ad-panel-title">Manage Application</h3>
+                </div>
+
+                <form asp-action="UpdateStatus" method="post">
+                    <input type="hidden" name="AdoptionId" value="@Model.AdoptionId" />
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <div class="ad-panel-body">
+                        <!-- Status -->
+                        <div class="ad-form-group">
+                            <label class="ad-form-label">Application Status</label>
+                            <select name="Status" class="ad-form-control" id="statusSelect">
+
+                                <option value="Pending" selected="@(isPending ? "selected" : null)">
+                                    Pending
+                                </option>
+
+                                <option value="Approved" selected="@(isApproved ? "selected" : null)">
+                                    Approved
+                                </option>
+
+                                <option value="Rejected" selected="@(isRejected ? "selected" : null)">
+                                    Rejected
+                                </option>
+
+                            </select>
+                        </div>
+
+                        <!-- Rejection Reason (conditional) -->
+                        <div id="rejectBox" style="display:none;">
+                            <div class="ad-conditional">
+                                <div class="ad-form-group" style="margin-bottom:0;">
+                                    <label class="ad-form-label">⚠️ Rejection Reason</label>
+                                    <textarea name="RejectionReason" class="ad-form-control"
+                                              placeholder="Provide a clear reason for rejection..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pickup Date -->
+                        <div id="pickupBox" style="display:none;">
+                            <div class="ad-conditional">
+                                <div class="ad-form-group" style="margin-bottom:0;">
+                                    <label class="ad-form-label">📅 Pickup Date</label>
+                                    <input name="PickupDate" type="date" class="ad-form-control" />
+                                    <span class="text-danger">@Html.ValidationMessage("PickupDate")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ad-form-actions">
+                        <button type="submit" class="ad-btn-update">✓ Update Application</button>
+                        <a asp-controller="Admin" asp-action="AdoptionProgress" class="ad-btn-cancel">Cancel</a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var statusSelect = document.getElementById("statusSelect");
+    var rejectBox    = document.getElementById("rejectBox");
+    var pickupBox    = document.getElementById("pickupBox");
+
+    function toggleFields() {
+        var status = statusSelect.value;
+
+        rejectBox.style.display = (status === "Rejected") ? "block" : "none";
+        pickupBox.style.display = (status === "Approved") ? "block" : "none";
+
+        document.querySelector("input[name='PickupDate']").required = (status === "Approved");
+    }
+
+    statusSelect.addEventListener("change", toggleFields);
+    toggleFields();
+</script>

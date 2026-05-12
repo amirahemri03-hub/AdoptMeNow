@@ -1,0 +1,391 @@
+@model AdoptMeNow.ViewModels.AdoptPetViewModels
+
+<link rel="stylesheet" href="~/css/Adoption.css" />
+
+<div class="adopt-wrap">
+    <div class="adopt-card">
+
+        <div class="form-header">
+        <h2>Adopt @Model.Pet.Name 🐾</h2>
+        <p>Complete all steps to adopt @Model.Pet.Name.</p>
+        </div>
+
+        <!-- Progress Stepper -->
+        <div class="stepper-wrap">
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill" style="width:33%"></div>
+            </div>
+            <div class="step-labels">
+                <div class="step-label">
+                    <div class="step-dot active" id="dot1">1</div>
+                    <span class="step-name active" id="name1">Your info</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-label">
+                    <div class="step-dot" id="dot2">2</div>
+                    <span class="step-name" id="name2">Readiness</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-label">
+                    <div class="step-dot" id="dot3">3</div>
+                    <span class="step-name" id="name3">Agreement</span>
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="SubmitAdoption" method="post" id="adoptionForm" novalidate>
+            <input type="hidden" asp-for="PetId" />
+
+            <!-- ================= STEP 1 ================= -->
+            <div id="step1">
+                <div class="section-title">Step 1 — Your information</div>
+
+                <div class="field-group">
+                    <label class="field-label">Full name</label>
+                    <input asp-for="FullName" class="field-input" placeholder="e.g. Amirah Emri" />
+                    <span asp-validation-for="FullName" class="field-error"></span>
+                    <div class="err" id="errName">Please enter your full name.</div>
+                </div>
+
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Age</label>
+                        <input asp-for="Age" class="field-input" type="number" placeholder="e.g. 28" />
+                        <span asp-validation-for="Age" class="field-error"></span>
+                        <div class="err" id="errAge">Please enter your age.</div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Contact number</label>
+                        <input asp-for="ContactInfo" class="field-input" placeholder="e.g. 012-345 6789" />
+                        <span asp-validation-for="ContactInfo" class="field-error"></span>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Email address</label>
+                    <input asp-for="Email" class="field-input" readonly />
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Home address</label>
+                    <input asp-for="Address" class="field-input" placeholder="Street, city, postcode" />
+                    <span asp-validation-for="Address" class="field-error"></span>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">IC number</label>
+                    <input asp-for="IcNumber" class="field-input" placeholder="e.g. 980101-14-1234" />
+                    <span asp-validation-for="IcNumber" class="field-error"></span>
+                </div>
+
+                <div class="btn-row" style="margin-top:1.5rem;">
+                    <button type="button" class="btn-primary" onclick="goStep2()">Continue →</button>
+                </div>
+            </div>
+
+            <!-- ================= STEP 2 ================= -->
+            <div id="step2" style="display:none;">
+                <div class="section-title">Step 2 — Pet readiness assessment</div>
+
+                <input type="hidden" asp-for="HasTimeForPet" id="HasTimeForPet" />
+                <input type="hidden" asp-for="IsFinanciallyReady" id="IsFinanciallyReady" />
+                <input type="hidden" asp-for="IsEmotionallyReady" id="IsEmotionallyReady" />
+                <input type="hidden" asp-for="WillingVetVisits" id="WillingVetVisits" />
+                <input type="hidden" asp-for="HasEnoughSpace" id="HasEnoughSpace" />
+
+                <div class="yn-group">
+                    <span class="yn-label">Do you have enough time daily to care for and spend with a pet?</span>
+                    <div class="yn-buttons">
+                        <button type="button" class="yn-btn" onclick="selectYN(this, 'HasTimeForPet', 'true')">
+                            <span class="yn-icon yn-yes-icon">✓</span> Yes, I do
+                        </button>
+                        <button type="button" class="yn-btn" onclick="selectYN(this, 'HasTimeForPet', 'false')">
+                            <span class="yn-icon yn-no-icon">✗</span> No, not yet
+                        </button>
+                    </div>
+                    <div class="err" id="errHasTime">Please answer this question.</div>
+                </div>
+
+                <div class="yn-group">
+                    <span class="yn-label">Are you financially prepared to cover ongoing pet expenses?</span>
+                    <div class="yn-buttons">
+                        <button type="button" class="yn-btn" onclick="selectYN(this, 'IsFinanciallyReady', 'true')">
+                            <span class="yn-icon yn-yes-icon">✓</span> Yes, I am
+                        </button>
+                        <button type="button" class="yn-btn" onclick="selectYN(this, 'IsFinanciallyReady', 'false')">
+                            <span class="yn-icon yn-no-icon">✗</span> Not fully
+                        </button>
+                    </div>
+                    <div class="err" id="errFinancial">Please answer this question.</div>
+                </div>
+
+                <div class="yn-group">
+                    <span class="yn-label">Are you emotionally ready for long-term pet care?</span>
+                    <div class="yn-buttons">
+                        <button type="button" class="yn-btn" onclick="selectYN(this, 'IsEmotionallyReady', 'true')">
+                            <span class="yn-icon yn-yes-icon">✓</span> Yes, I am
+                        </button>
+                        <button type="button" class="yn-btn" onclick="selectYN(this, 'IsEmotionallyReady', 'false')">
+                            <span class="yn-icon yn-no-icon">✗</span> Not sure yet
+                        </button>
+                    </div>
+                    <div class="err" id="errEmotional">Please answer this question.</div>
+                </div>
+
+                <div class="yn-group">
+                    <span class="yn-label">Are you willing to take your pet for regular vet checkups?</span>
+                    <div class="yn-buttons">
+                        <button type="button" class="yn-btn" onclick="selectYN(this, 'WillingVetVisits', 'true')">
+                            <span class="yn-icon yn-yes-icon">✓</span> Yes, absolutely
+                        </button>
+                        <button type="button" class="yn-btn" onclick="selectYN(this, 'WillingVetVisits', 'false')">
+                            <span class="yn-icon yn-no-icon">✗</span> No
+                        </button>
+                    </div>
+                    <div class="err" id="errVet">Please answer this question.</div>
+                </div>
+
+                <div class="yn-group">
+                    <span class="yn-label">Do you have enough space at home for a pet?</span>
+                    <div class="yn-buttons">
+                        <button type="button" class="yn-btn" onclick="selectYN(this, 'HasEnoughSpace', 'true')">
+                            <span class="yn-icon yn-yes-icon">✓</span> Yes, plenty
+                        </button>
+                        <button type="button" class="yn-btn" onclick="selectYN(this, 'HasEnoughSpace', 'false')">
+                            <span class="yn-icon yn-no-icon">✗</span> Not enough
+                        </button>
+                    </div>
+                    <div class="err" id="errSpace">Please answer this question.</div>
+                </div>
+
+                <div class="btn-row" style="margin-top:1.5rem;">
+                    <button type="button" class="btn-secondary" onclick="goStep1()">← Back</button>
+                    <button type="button" class="btn-primary" onclick="goStep3()">Continue →</button>
+                </div>
+            </div>
+
+            <!-- ================= STEP 3 ================= -->
+            <div id="step3" style="display:none;">
+                <div class="section-title">Step 3 — Terms &amp; conditions</div>
+
+                <div class="tc-box">
+                    <h5>Please read and agree to the following</h5>
+                    <div class="tc-item">
+                        <div class="tc-check">&#10003;</div>
+                        I will provide a safe, loving, and permanent home.
+                    </div>
+                    <div class="tc-item">
+                        <div class="tc-check">&#10003;</div>
+                        I understand and accept the long-term responsibility of pet ownership.
+                    </div>
+                    <div class="tc-item">
+                        <div class="tc-check">&#10003;</div>
+                        I will not transfer the pet to another party without prior consent.
+                    </div>
+                    <div class="tc-item">
+                        <div class="tc-check">&#10003;</div>
+                        I will provide proper veterinary care throughout the pet's life.
+                    </div>
+                    <div class="tc-item">
+                        <div class="tc-check">&#10003;</div>
+                        I consent to follow-up checks on the pet's well-being.
+                    </div>
+                    <div class="tc-item">
+                        <div class="tc-check">&#10003;</div>
+                        I understand that providing false information may result in adoption cancellation.
+                    </div>
+                    <div class="tc-item">
+                        <div class="tc-check">&#10003;</div>
+                        I have read all information about the pet I am adopting.
+                    </div>
+                </div>
+
+                <div class="agree-row">
+                    <input type="checkbox" asp-for="AgreeTerms" id="agreeCheck" />
+
+                    <div class="agree-text">
+                        <label for="agreeCheck">
+                            I have read and agree to all the terms and conditions above.
+                        </label>
+                        <div class="err" id="errAgree">You must agree to the terms and conditions.</div>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button type="button" class="btn-secondary" onclick="goStep2back()">← Back</button>
+                    <button type="submit" class="btn-success" id="submitBtn">Submit application</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Define all functions
+        function setStep(n) {
+            for (var i = 1; i <= 3; i++) {
+                var stepDiv = document.getElementById('step' + i);
+                if (stepDiv) stepDiv.style.display = i === n ? 'block' : 'none';
+
+                var dot = document.getElementById('dot' + i);
+                var nameSpan = document.getElementById('name' + i);
+
+                if (dot && nameSpan) {
+                    if (i < n) {
+                        dot.className = 'step-dot done';
+                        dot.innerHTML = '&#10003;';
+                        nameSpan.className = 'step-name';
+                    }
+                    else if (i === n) {
+                        dot.className = 'step-dot active';
+                        dot.textContent = i;
+                        nameSpan.className = 'step-name active';
+                    }
+                    else {
+                        dot.className = 'step-dot';
+                        dot.textContent = i;
+                        nameSpan.className = 'step-name';
+                    }
+                }
+            }
+
+            var pcts = { 1: '33%', 2: '66%', 3: '100%' };
+            var progressFill = document.getElementById('progressFill');
+            if (progressFill) progressFill.style.width = pcts[n];
+        }
+
+        function goStep2() {
+            var fullName = document.querySelector("[name='FullName']").value.trim();
+            var age = document.querySelector("[name='Age']").value.trim();
+            var address = document.querySelector("[name='Address']").value.trim();
+            var icNumber = document.querySelector("[name='IcNumber']").value.trim();
+
+            var errName = document.getElementById('errName');
+            var errAge = document.getElementById('errAge');
+            
+            if (errName) errName.style.display = fullName ? 'none' : 'block';
+            if (errAge) errAge.style.display = age ? 'none' : 'block';
+
+            if (!fullName || !age) return;
+
+            setStep(2);
+        }
+
+        function goStep1() {
+            setStep(1);
+        }
+
+        function goStep2back() {
+            setStep(2);
+        }
+
+        function goStep3() {
+            var fields = [
+                { id: 'HasTimeForPet', err: 'errHasTime' },
+                { id: 'IsFinanciallyReady', err: 'errFinancial' },
+                { id: 'IsEmotionallyReady', err: 'errEmotional' },
+                { id: 'WillingVetVisits', err: 'errVet' },
+                { id: 'HasEnoughSpace', err: 'errSpace' }
+            ];
+
+            var allAnswered = true;
+
+            for (var i = 0; i < fields.length; i++) {
+                var f = fields[i];
+                var el = document.getElementById(f.id);
+                var errEl = document.getElementById(f.err);
+
+                if (!el || !el.value) {
+                    if (errEl) errEl.style.display = 'block';
+                    allAnswered = false;
+                } else {
+                    if (errEl) errEl.style.display = 'none';
+                }
+            }
+
+            if (!allAnswered) return;
+
+            setStep(3);
+        }
+
+        function selectYN(btn, fieldId, val) {
+            var parent = btn.parentElement;
+            var buttons = parent.querySelectorAll('.yn-btn');
+            
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('selected-yes', 'selected-no');
+            }
+
+            btn.classList.add(val === 'true' ? 'selected-yes' : 'selected-no');
+
+            var field = document.getElementById(fieldId);
+            if (field) field.value = val;
+
+            var errorMap = {
+                'HasTimeForPet': 'errHasTime',
+                'IsFinanciallyReady': 'errFinancial',
+                'IsEmotionallyReady': 'errEmotional',
+                'WillingVetVisits': 'errVet',
+                'HasEnoughSpace': 'errSpace'
+            };
+
+            var errId = errorMap[fieldId];
+            if (errId) {
+                var errEl = document.getElementById(errId);
+                if (errEl) errEl.style.display = 'none';
+            }
+        }
+
+        // Make functions global
+        window.goStep2 = goStep2;
+        window.goStep1 = goStep1;
+        window.goStep2back = goStep2back;
+        window.goStep3 = goStep3;
+        window.selectYN = selectYN;
+
+        // Handle form submission
+        document.addEventListener("DOMContentLoaded", function() {
+            
+            var petIdField = document.querySelector("input[name='PetId']");
+            if (petIdField) {
+            }
+            
+            // Initialize step 1
+            setStep(1);
+            
+            var form = document.getElementById("adoptionForm");
+            
+            if (form) {
+                form.addEventListener("submit", function(e) {
+                    
+                    // Check if we're on step 3
+                    var step3 = document.getElementById("step3");
+                    if (step3 && step3.style.display !== "block") {
+                        e.preventDefault();
+                        alert("Please complete all steps before submitting");
+                        return false;
+                    }
+                    
+                    // Check terms agreement
+                    var agree = document.getElementById("agreeCheck");
+                    var errAgree = document.getElementById("errAgree");
+                    
+                    if (!agree || !agree.checked) {
+                        if (errAgree) errAgree.style.display = "block";
+                        e.preventDefault();
+                        alert("Please agree to the terms and conditions");
+                        return false;
+                    }
+                    
+                    if (errAgree) errAgree.style.display = "none";
+                    
+                    return true;
+                });
+            }
+        });
+    </script>
+}

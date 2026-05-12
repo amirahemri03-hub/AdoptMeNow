@@ -1,0 +1,133 @@
+@model AdoptMeNow.Models.RescueReport    
+@{
+    bool isRejected = Model.Status == "Rejected";
+    bool isCancelled = Model.Status == "Cancelled";
+
+    var rejectedProgress = Model.ProgressUpdates?
+    .FirstOrDefault(p => p.Status == "Rejected");
+
+    var cancelledProgress = Model.ProgressUpdates?
+    .FirstOrDefault(p => p.Status == "Cancelled");
+   
+}
+
+<div class="rp-right">
+    <div class="rp-tracker-card">
+
+        <h3>Rescue Timeline</h3>
+
+        <div class="rp-tracker">
+
+            <!-- Pending -->
+            <div class="rp-step done">
+                <div class="rp-circle">✓</div>
+
+                <div class="rp-step-info">
+                    <div class="rp-step-title">Pending</div>
+
+                    <div class="rp-step-date">
+                        @Model.ReportedAt.ToString("dd MMM yyyy")
+                    </div>
+                </div>
+            </div>
+
+        @if(isRejected)
+        {
+            <!-- Rejected -->
+                <div class="rp-step danger ">
+
+                    <div class="rp-circle">✕</div>
+
+                    <div class="rp-step-info">
+
+                        <div class="rp-step-title">
+                            Rejected
+                        </div>
+
+                        @if (rejectedProgress != null)
+                        {
+                            <div class="rp-step-date">
+                                @rejectedProgress.CreatedAt.ToString("dd MMM yyyy")
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.RejectReason))
+                        {
+                            <div class="rp-step-note">
+                                @Model.RejectReason
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+        }
+        else if (isCancelled)
+        {
+            <!-- Cancelled -->
+                <div class="rp-step danger ">
+
+                    <div class="rp-circle">✕</div>
+
+                    <div class="rp-step-info">
+
+                        <div class="rp-step-title">
+                            Cancelled
+                        </div>
+
+                        @if (cancelledProgress != null)
+                        {
+                            <div class="rp-step-date">
+                                @cancelledProgress.CreatedAt.ToString("dd MMM yyyy")
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.CancelReason))
+                        {
+                            <div class="rp-step-note">
+                                @Model.CancelReason
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+        }
+        else
+        {
+            @foreach (var item in Model.ProgressUpdates.OrderBy(p => p.CreatedAt))
+            {
+                <div class="rp-step done">
+
+                    <div class="rp-circle">✓</div>
+
+                    <div class="rp-step-info">
+
+                        <div class="rp-step-title">
+                            @item.Status
+                        </div>
+
+                        <div class="rp-step-date">
+                            @item.CreatedAt.ToString("dd MMM yyyy")
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(item.Note))
+                        {
+                            <div class="rp-step-note">
+                                @item.Note
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(item.ImagePath))
+                        {
+                            <img src="@item.ImagePath" class="rp-step-img" />
+                        }
+
+                    </div>
+                </div>
+            }
+        }
+        
+        </div>
+    </div>
+</div>

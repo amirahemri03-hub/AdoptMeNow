@@ -1,0 +1,51 @@
+@model AdoptMeNow.Models.RescueReport
+
+@{
+    ViewData["Title"] = "Rescue Report Progress";
+}
+
+<div class="rp-page">
+
+    <div class="rp-header">
+        <div>
+            <p class="rp-eyebrow">Rescue Case #RSC-@Model.Id.ToString("D4")</p>
+            <h1>Rescue Progress</h1>
+            <p class="rp-subtitle">Follow the latest rescue updates for this pet.</p>
+        </div>
+        <span class="status-badge @Model.Status.ToLower().Replace(" ", "-")">
+            <span class="bdot"></span>
+            @Model.Status
+        </span>
+    </div>
+    
+    <div class="rp-layout">
+
+        <!-- Left column — Timeline (main) -->
+        <partial name="_TrackRescue" model="Model" />
+
+        <!-- Right column — Reported situation -->
+        <div class="rp-right">
+            <div class="rp-situation-card">
+                <div class="rp-card-header">
+                    <h3>Reported situation</h3>
+                    <span>@Model.ReportedAt.ToString("dd MMM yyyy")</span>
+                </div>
+                <img src="@Model.ImagePath" class="rp-situation-img" alt="Reported animal" />
+                <div class="rp-situation-rows">
+                    <div class="rp-row">
+                        <span class="rp-label">Description</span>
+                        <p class="rp-value">@Model.Description</p>
+                    </div>
+                    <div class="rp-row">
+                        <span class="rp-label">Location</span>
+                        <p class="rp-value">
+                            <i class="ti ti-map-pin"></i>
+                            @Model.Location
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

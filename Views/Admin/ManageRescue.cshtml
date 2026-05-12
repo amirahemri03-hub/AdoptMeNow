@@ -1,0 +1,251 @@
+@model List<RescueReport>
+
+@{
+    ViewData["Title"] = "Manage Rescue Reports";
+}
+
+
+<div class="manage-rescue-page">
+
+    <!-- ── Page Header ── -->
+    <div class="ar-page-header">
+        <div>
+            <p class="ar-eyebrow">Admin · Rescue Management</p>
+            <h1>Pet Rescue Reports</h1>
+            <p class="ar-subtitle">Review rescue cases submitted by users and take action.</p>
+        </div>
+    </div>
+
+    <!-- ── Stat Cards ── -->
+    <div class="ar-stats">
+
+        <div class="ar-stat-card">
+            <div class="si slate">📋</div>
+            <div>
+                <div class="sv" id="totalReports">0</div>
+                <div class="sl">Total Reports</div>
+            </div>
+        </div>
+
+        <div class="ar-stat-card">
+            <div class="si amber">⏳</div>
+            <div>
+                <div class="sv" id="pendingCount">0</div>
+                <div class="sl">Pending (Action Needed)</div>
+            </div>
+        </div>
+
+        <div class="ar-stat-card">
+            <div class="si green">🐾</div>
+            <div>
+                <div class="sv" id="activeCount">0</div>
+                <div class="sl">Active Cases</div>
+            </div>
+        </div>
+
+        <div class="ar-stat-card">
+            <div class="si red">✕</div>
+            <div>
+                <div class="sv" id="closedCount">0</div>
+                <div class="sl">Closed Cases</div>
+            </div>
+        </div>
+        <div class="ar-stat-card">
+            <div class="si blue">🏡</div>
+            <div>
+                <div class="sv" id="adoptionCount">0</div>
+                <div class="sl">For Adoption</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Table Card ── -->
+    <div class="ar-table-card">
+
+        <!-- Toolbar -->
+        <div class="ar-toolbar">
+            <div class="ar-toolbar-left">
+                <h2>All Cases</h2>
+                <div class="ar-filter-tabs">
+                    <button class="ar-filter-tab active" onclick="filterTable('all',      this)">All</button>
+                    <button class="ar-filter-tab"        onclick="filterTable('Pending',  this)">Pending</button>
+                    <button class="ar-filter-tab"        onclick="filterTable('active', this)">Active</button>
+                    <button class="ar-filter-tab"        onclick="filterTable('For Adoption', this)">Adoption</button>
+                    <button class="ar-filter-tab"        onclick="filterTable('closed', this)">Closed</button>
+                </div>
+            </div>
+            <span class="ar-result-count" id="resultCount">
+                @Model.Count report@(Model.Count == 1 ? "" : "s")
+            </span>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="ar-empty">
+                <div class="ei">🐾</div>
+                <h3>No rescue reports yet</h3>
+                <p>When users submit rescue cases they will appear here for review.</p>
+            </div>
+        }
+        else
+        {
+            <table class="ar-table" id="rescueTable">
+                <thead>
+                    <tr>
+                        <th style="width:90px;">Photo</th>
+                        <th>Description</th>
+                        <th>Reporter</th>
+                        <th style="width:110px;">Date</th>
+                        <th style="width:115px;">Status</th>
+                        <th style="width:120px;">Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var latestStatus = item.ProgressUpdates?
+                            .OrderByDescending(p => p.CreatedAt)
+                            .FirstOrDefault()?.Status ?? item.Status;
+                        
+                        <tr data-status="@latestStatus">
+
+                            <!-- Photo -->
+                            <td>
+                                <img class="ar-thumb" src="@item.ImagePath" alt="Rescue photo" />
+                            </td>
+
+                            <!-- Description -->
+                            <td class="ar-desc-cell">
+                                <p>@item.Description</p>
+                            </td>
+
+                            <!-- Reporter -->
+                            <td>
+                                <div class="ar-reporter">
+                                    <div class="ar-avatar">
+                                        @(item.User?.UserName?.Length > 0
+                                            ? item.User.UserName.Substring(0, 1).ToUpper()
+                                            : "?")
+                                    </div>
+                                    <span class="ar-reporter-name">@item.User?.UserName</span>
+                                </div>
+                            </td>
+
+                            <!-- Date -->
+                            <td class="ar-date">@item.ReportedAt.ToString("dd MMM yyyy")</td>
+
+                            <!-- Status -->
+                            <td>
+                                @{
+                                   var badgeClass = latestStatus switch
+                                    {
+                                        "Pending" => "pending",
+                                        "Cancelled" => "cancelled",
+                                        "Rejected" => "rejected",
+                                        "Recovering" => "recovering",
+                                        "Rescued" => "rescued",
+                                        "For Adoption" => "for-adoption",
+                                        _ => "approved"
+                                    };
+                                }
+
+                                <span class="ar-badge @badgeClass">
+                                    <span class="bdot"></span>@latestStatus
+                                </span>
+                            </td>
+
+                            <!-- View Detail -->
+                            <td>
+                                <a class="btn-ar-detail"
+                                   asp-controller="Admin"
+                                   asp-action="RescueDetail"
+                                   asp-route-id="@item.Id">
+                                    <svg viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    View Detail
+                                </a>
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable(status, btn) {
+
+            document.querySelectorAll('.ar-filter-tab')
+                .forEach(t => t.classList.remove('active'));
+
+            btn.classList.add('active');
+
+            const rows = document.querySelectorAll('#rescueTable tbody tr');
+
+            let visible = 0;
+
+            rows.forEach(row => {
+
+                const rowStatus = row.dataset.status;
+
+                let match = false;
+
+                if (status === 'all') {
+                    match = true;
+                }
+                else if (status === 'active') {
+
+                    match =
+                        rowStatus === 'Approved' ||
+                        rowStatus === 'Rescued' ||
+                        rowStatus === 'Recovering';
+
+                }
+                else if (status === 'closed') {
+
+                    match =
+                        rowStatus === 'Rejected' ||
+                        rowStatus === 'Cancelled';
+
+                }
+                else {
+
+                    match = rowStatus === status;
+                }
+
+                row.style.display = match ? '' : 'none';
+
+                if (match) visible++;
+            });
+
+            document.getElementById('resultCount').textContent =
+                visible + (visible === 1 ? ' report' : ' reports');
+        }
+
+        function loadRescueStats() {
+            fetch('/Admin/GetRescueStats')
+                .then(res => res.json())
+                .then(data => {
+
+                    document.getElementById('totalReports').innerText = data.totalReports;
+                    document.getElementById('pendingCount').innerText = data.pending;
+                    document.getElementById('activeCount').innerText = data.active;
+                    document.getElementById('adoptionCount').innerText = data.adoption;
+                    document.getElementById('closedCount').innerText = data.closed;
+
+                })
+                .catch(err => console.error('Error loading stats:', err));
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadRescueStats();
+        });
+    </script>
+}

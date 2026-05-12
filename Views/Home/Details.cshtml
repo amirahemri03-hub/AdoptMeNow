@@ -1,0 +1,77 @@
+@model AdoptMeNow.ViewModels.PetViewModel
+@{
+    var pet = Model.Pet;
+}
+@{
+    ViewData["Title"] = "Pet Details";
+}
+<div class="details-container">
+    <section class="details-section">
+        <div class="details-card">
+
+            <!-- Image -->
+            <div class="details-image">
+                @if (!string.IsNullOrEmpty(pet.ImageUrl))
+                {
+                    <img src="@pet.ImageUrl" alt="@pet.Name" />
+                }
+                else
+                {
+                    <img src="/images/default.png" alt="@pet.Name" />
+                }
+            </div>
+
+            <!-- Info -->
+            <div class="details-body">
+
+                <h1 class="pet-name">@pet.Name</h1>
+
+                <!-- Info chips -->
+                <div class="info-grid">
+                    <div class="info-chip">
+                        <div class="chip-label">Breed</div>
+                        <div class="chip-value">@pet.Breed</div>
+                    </div>
+                    <div class="info-chip">
+                        <div class="chip-label">Gender</div>
+                        <div class="chip-value">@pet.Gender</div>
+                    </div>
+                    <div class="info-chip">
+                        <div class="chip-label">Age</div>
+                        <div class="chip-value">@pet.Age year@(pet.Age == 1 ? "" : "s")</div>
+                    </div>
+                    <div class="info-chip">
+                        <div class="chip-label">Status</div>
+                        <div class="chip-value">
+                            @if (pet.Status == "Adopted")
+                            {
+                                <div class="chip-value">Adopted</div>
+                            }
+                            else if (Model.HasPendingApplication)
+                            {
+                                <div class="chip-value">In Progress</div>
+                            }
+                            else
+                            {
+                                <div class="chip-value">Available</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="description-box">
+                    <div class="desc-label">About</div>
+                    <p>@pet.Description</p>
+                </div>
+
+                <!-- Actions -->
+                <div class="actions">
+                    <partial name="_AdoptButton" model="Model"/>
+                    <a href="/" class="btn-back">Back</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+</div>
