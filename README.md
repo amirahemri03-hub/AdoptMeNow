@@ -98,6 +98,6 @@ The system also supports animal rescue reporting, allowing users to report stray
 
 ## 📌 Note
 
-This project is developed for **Final Year Project (FYP) / Protege Training Program** purposes.
+This project is developed for **Protege Training Program** purposes.
 
 The system emphasizes a structured **pet adoption workflow**, supported by an animal rescue reporting module to improve animal welfare management.
